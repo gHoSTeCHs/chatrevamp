@@ -1,24 +1,24 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 import '../global.css';
 
 export default function TabLayout() {
-	const colorScheme = useColorScheme();
+	const { colors } = useTheme();
 
 	return (
 		<Tabs
 			screenOptions={{
-				tabBarActiveTintColor: '#3B82F6',
-				tabBarInactiveTintColor: '#9CA3AF',
+				tabBarActiveTintColor: colors.primary,
+				tabBarInactiveTintColor: colors.textTertiary,
 				tabBarStyle: {
-					backgroundColor: colorScheme === 'dark' ? '#1F2937' : '#FFFFFF',
+					backgroundColor: colors.surface,
 					borderTopWidth: 1,
-					borderTopColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
+					borderTopColor: colors.separator,
 					height: 60,
 					paddingBottom: 8,
 					paddingTop: 8,
@@ -33,11 +33,11 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="index"
 				options={{
-					title: 'Home',
+					title: 'Chats',
 					tabBarIcon: ({ color, focused }) => (
-						<IconSymbol
+						<Ionicons
 							size={24}
-							name={focused ? 'house.fill' : 'house'}
+							name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
 							color={color}
 						/>
 					),
@@ -46,11 +46,11 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="explore"
 				options={{
-					title: 'Chats',
+					title: 'Settings',
 					tabBarIcon: ({ color, focused }) => (
-						<IconSymbol
+						<Ionicons
 							size={24}
-							name={focused ? 'message.fill' : 'message'}
+							name={focused ? 'settings' : 'settings-outline'}
 							color={color}
 						/>
 					),

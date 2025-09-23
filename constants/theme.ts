@@ -1,10 +1,81 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Enhanced theme system for ChatRevamp with comprehensive color tokens
  */
 
 import { Platform } from 'react-native';
+import { ChatColors } from '../types/theme.types';
 
+// Chat-specific color palette
+const chatPrimary = '#007AFF';
+const chatPrimaryLight = '#4DA3FF';
+const chatPrimaryDark = '#0056CC';
+
+export const ChatTheme: { light: ChatColors; dark: ChatColors } = {
+  light: {
+    // Background colors
+    background: '#FFFFFF',
+    surface: '#F8F9FA',
+    surfaceSecondary: '#F1F3F4',
+    
+    // Text colors
+    text: '#1C1C1E',
+    textSecondary: '#6C6C70',
+    textTertiary: '#8E8E93',
+    
+    // Primary colors
+    primary: chatPrimary,
+    primaryLight: chatPrimaryLight,
+    primaryDark: chatPrimaryDark,
+    
+    // Status colors
+    online: '#34C759',
+    offline: '#8E8E93',
+    away: '#FF9500',
+    
+    // UI elements
+    border: '#E5E5EA',
+    separator: '#F1F1F1',
+    shadow: 'rgba(0, 0, 0, 0.1)',
+    
+    // Tab colors
+    tabActive: chatPrimary,
+    tabInactive: '#8E8E93',
+    tabBackground: '#FFFFFF',
+  },
+  dark: {
+    // Background colors
+    background: '#000000',
+    surface: '#1C1C1E',
+    surfaceSecondary: '#2C2C2E',
+    
+    // Text colors
+    text: '#FFFFFF',
+    textSecondary: '#AEAEB2',
+    textTertiary: '#8E8E93',
+    
+    // Primary colors
+    primary: chatPrimary,
+    primaryLight: chatPrimaryLight,
+    primaryDark: chatPrimaryDark,
+    
+    // Status colors
+    online: '#30D158',
+    offline: '#8E8E93',
+    away: '#FF9F0A',
+    
+    // UI elements
+    border: '#38383A',
+    separator: '#2C2C2E',
+    shadow: 'rgba(0, 0, 0, 0.3)',
+    
+    // Tab colors
+    tabActive: chatPrimary,
+    tabInactive: '#8E8E93',
+    tabBackground: '#1C1C1E',
+  },
+};
+
+// Legacy Colors for backward compatibility
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
