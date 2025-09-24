@@ -31,6 +31,7 @@ export const ChatTheme: { light: ChatColors; dark: ChatColors } = {
     online: '#34C759',
     offline: '#8E8E93',
     away: '#FF9500',
+    error: '#FF3B30',
     
     // UI elements
     border: '#E5E5EA',
@@ -62,6 +63,7 @@ export const ChatTheme: { light: ChatColors; dark: ChatColors } = {
     online: '#30D158',
     offline: '#8E8E93',
     away: '#FF9F0A',
+    error: '#FF453A',
     
     // UI elements
     border: '#38383A',

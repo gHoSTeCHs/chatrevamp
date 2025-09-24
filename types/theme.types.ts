@@ -20,6 +20,7 @@ export interface ChatColors {
   online: string;
   offline: string;
   away: string;
+  error: string;
   
   // UI elements
   border: string;
