@@ -39,3 +39,23 @@ export interface ThemeContextType {
   isDark: boolean;
   setTheme: (mode: ThemeMode) => void;
 }
+
+export interface ThemeOption {
+  id: ThemeMode;
+  title: string;
+  description: string;
+  icon: string;
+  preview: {
+    background: string;
+    surface: string;
+    text: string;
+    primary: string;
+  };
+}
+
+export interface ThemeSelectionModalProps {
+  visible: boolean;
+  onClose: () => void;
+  currentTheme: ThemeMode;
+  onThemeSelect: (theme: ThemeMode) => void;
+}

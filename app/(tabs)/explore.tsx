@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from '../../contexts/ThemeContext';
 import { ThemeMode } from '../../types/theme.types';
+import ThemeSelectionModal from '../../components/modals/ThemeSelectionModal';
 import '../global.css';
 
 
 
 export default function SettingsScreen() {
   const { colors, mode, setTheme } = useTheme();
+  const [isThemeModalVisible, setIsThemeModalVisible] = useState(false);
 
   const settingsOptions = [
     {
@@ -52,14 +54,18 @@ export default function SettingsScreen() {
 
   const handleSettingPress = (setting: any) => {
     if (setting.type === 'theme') {
-      // Theme selection will be handled by the theme picker
+      setIsThemeModalVisible(true);
       return;
     }
     console.log('Setting pressed:', setting.title);
   };
 
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+  const handleThemeSelect = (newTheme: ThemeMode) => {
     setTheme(newTheme);
+  };
+
+  const handleCloseThemeModal = () => {
+    setIsThemeModalVisible(false);
   };
 
   return (
@@ -142,6 +148,13 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <ThemeSelectionModal
+        visible={isThemeModalVisible}
+        onClose={handleCloseThemeModal}
+        currentTheme={mode}
+        onThemeSelect={handleThemeSelect}
+      />
     </SafeAreaView>
   );
 }

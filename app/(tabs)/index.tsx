@@ -6,13 +6,16 @@ import { ChatListItem } from '../../components/chat/ChatListItem';
 import { useTheme } from '../../contexts/ThemeContext';
 import FloatingActionButton from '@/components/ui/FloatingActionButton';
 import { SearchBar } from '../../components/ui/SearchBar';
+import HospitalMembersModal from '../../components/modals/HospitalMembersModal';
 import { mockChats } from '../../constants/mockData';
 import { Chat } from '../../types/chat.types';
+import { HospitalMember } from '../../types/hospital.types';
 import '../global.css';
 
 export default function ChatHomeScreen() {
   const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isHospitalMembersModalVisible, setIsHospitalMembersModalVisible] = useState(false);
 
   const filteredChats = mockChats.filter(chat => {
     const matchesSearch = chat.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -21,11 +24,21 @@ export default function ChatHomeScreen() {
   });
 
   const handleNewChat = () => {
-    console.log('New chat pressed');
+    setIsHospitalMembersModalVisible(true);
   };
 
   const handleChatPress = (chat: Chat) => {
     console.log('Chat pressed:', chat.user.name);
+  };
+
+  const handleStartConversation = (member: HospitalMember) => {
+    console.log('Starting conversation with:', member.name);
+    // Here you would typically navigate to a chat screen or create a new chat
+    // For now, we'll just log the action
+  };
+
+  const handleCloseModal = () => {
+    setIsHospitalMembersModalVisible(false);
   };
 
   return (
@@ -58,6 +71,12 @@ export default function ChatHomeScreen() {
       />
       
       <FloatingActionButton onPress={handleNewChat} />
+      
+      <HospitalMembersModal
+        visible={isHospitalMembersModalVisible}
+        onClose={handleCloseModal}
+        onStartConversation={handleStartConversation}
+      />
     </SafeAreaView>
   );
 }
