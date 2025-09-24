@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { ChatHeader } from '../../components/chat/ChatHeader';
 import { ChatListItem } from '../../components/chat/ChatListItem';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -14,6 +15,7 @@ import '../global.css';
 
 export default function ChatHomeScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [isHospitalMembersModalVisible, setIsHospitalMembersModalVisible] = useState(false);
 
@@ -28,7 +30,7 @@ export default function ChatHomeScreen() {
   };
 
   const handleChatPress = (chat: Chat) => {
-    console.log('Chat pressed:', chat.user.name);
+    router.push(`/chat/${chat.id}`);
   };
 
   const handleStartConversation = (member: HospitalMember) => {
