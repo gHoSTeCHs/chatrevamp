@@ -1,272 +1,208 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  TouchableOpacity,
-  StatusBar,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useStreamChat } from '@/contexts/StreamChatContext';
+import { useTheme } from '@/contexts/ThemeContext';
+
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../../contexts/ThemeContext';
-import { ChatMessage as ChatMessageComponent } from '../../components/chat/ChatMessage';
-import { ChatInput } from '../../components/chat/ChatInput';
-import { Avatar } from '../../components/ui/Avatar';
-import { ChatConversation, ChatMessage, ChatUser } from '../../types/chat.types';
-import { mockConversations } from '../../constants/mockData';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+	ActivityIndicator,
+	SafeAreaView,
+	StatusBar,
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	View,
+} from 'react-native';
+import { Channel, MessageList } from 'stream-chat-expo';
+import type { Channel as ChannelType } from 'stream-chat';
+// import { Avatar } from '@/components/ui/Avatar';
+import { CustomMessage } from '@/components/stream/CustomMessage';
 
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
-  const { colors } = useTheme();
-  const flatListRef = useRef<FlatList>(null);
-  
-  // Find the conversation by ID
-  const conversation = mockConversations.find(conv => conv.id === id);
-  const otherUser = conversation?.participants.find(p => p.id !== 'currentUser');
-  
-  const [messages, setMessages] = useState<ChatMessage[]>(conversation?.messages || []);
-  const [isTyping, setIsTyping] = useState(false);
+	const { id } = useLocalSearchParams<{ id: string }>();
+	const router = useRouter();
+	const { colors, isDark } = useTheme();
+	const { client, isConnected } = useStreamChat();
+	const [channel, setChannel] = useState<ChannelType | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Scroll to bottom when messages change
-    if (messages.length > 0) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [messages]);
 
-  const handleSendMessage = (text: string) => {
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      text,
-      timestamp: new Date(),
-      isRead: false,
-      senderId: 'currentUser',
-      type: 'text',
-      status: 'sent',
-    };
 
-    setMessages(prev => [...prev, newMessage]);
-  };
+	useEffect(() => {
+		if (!isConnected || !id) return;
 
-  const handleGoBack = () => {
-    router.back();
-  };
+		const initializeChannel = async () => {
+			try {
+				setLoading(true);
+				const channelInstance = client.channel('messaging', id);
+				await channelInstance.watch();
+				setChannel(channelInstance);
+			} catch (err) {
+				console.error('Failed to initialize channel:', err);
+				setError('Failed to load chat');
+			} finally {
+				setLoading(false);
+			}
+		};
 
-  const handleVideoCall = () => {
-    console.log('Starting video call with:', otherUser?.name);
-  };
+		initializeChannel();
+	}, [isConnected, id, client]);
 
-  const handleVoiceCall = () => {
-    console.log('Starting voice call with:', otherUser?.name);
-  };
+	const handleGoBack = () => {
+		router.back();
+	};
 
-  const handleMoreOptions = () => {
-    console.log('More options for:', otherUser?.name);
-  };
+	// const handleVideoCall = () => {
+	//   console.log('Starting video call with:', otherUser?.name);
+	// };
 
-  if (!conversation || !otherUser) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: colors.text }]}>
-            Chat not found
-          </Text>
-          <TouchableOpacity
-            style={[styles.backButton, { backgroundColor: colors.primary }]}
-            onPress={handleGoBack}
-          >
-            <Text style={[styles.backButtonText, { color: colors.surface }]}>
-              Go Back
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
+	// const handleVoiceCall = () => {
+	//   console.log('Starting voice call with:', otherUser?.name);
+	// };
 
-  const renderMessage = ({ item, index }: { item: ChatMessage; index: number }) => {
-    const isCurrentUser = item.senderId === 'currentUser';
-    const showAvatar = !isCurrentUser && (
-      index === messages.length - 1 || 
-      messages[index + 1]?.senderId !== item.senderId
-    );
+	// const handleMoreOptions = () => {
+	//   console.log('More options for:', otherUser?.name);
+	// };
 
-    return (
-      <ChatMessageComponent
-        message={item}
-        isCurrentUser={isCurrentUser}
-        showAvatar={showAvatar}
-        user={isCurrentUser ? undefined : otherUser}
-      />
-    );
-  };
+	if (loading) {
+		return (
+			<SafeAreaView
+				style={[styles.container, { backgroundColor: colors.background }]}>
+				<StatusBar
+					barStyle={isDark ? 'light-content' : 'dark-content'}
+					backgroundColor={colors.background}
+				/>
+				<View style={styles.loadingContainer}>
+					<ActivityIndicator size="large" color={colors.primary} />
+					<Text style={[styles.loadingText, { color: colors.text }]}>
+						Loading chat...
+					</Text>
+				</View>
+			</SafeAreaView>
+		);
+	}
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar
-        barStyle={colors.background === '#FFFFFF' ? 'dark-content' : 'light-content'}
-        backgroundColor={colors.surface}
-      />
-      
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={handleGoBack}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        
-        <View style={styles.headerInfo}>
-          <Avatar
-            source={otherUser.avatar}
-            name={otherUser.name}
-            size={'small'}
-            isOnline={otherUser.isOnline}
-          />
-          <View style={styles.headerText}>
-            <Text style={[styles.headerName, { color: colors.text }]}>
-              {otherUser.name}
-            </Text>
-            <Text style={[styles.headerStatus, { color: colors.textSecondary }]}>
-              {otherUser.isOnline ? 'Online' : 'Last seen recently'}
-            </Text>
-          </View>
-        </View>
-        
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleVoiceCall}
-          >
-            <Ionicons name="call" size={22} color={colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleVideoCall}
-          >
-            <Ionicons name="videocam" size={22} color={colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={handleMoreOptions}
-          >
-            <Ionicons name="ellipsis-vertical" size={22} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-      </View>
+	if (error || !channel) {
+		return (
+			<SafeAreaView
+				style={[styles.container, { backgroundColor: colors.background }]}>
+				<StatusBar
+					barStyle={isDark ? 'light-content' : 'dark-content'}
+					backgroundColor={colors.background}
+				/>
+				<View style={styles.errorContainer}>
+					<Text style={[styles.errorText, { color: colors.text }]}>
+						{error || 'Chat not found'}
+					</Text>
+					<TouchableOpacity
+						style={[styles.backButton, { backgroundColor: colors.primary }]}
+						onPress={handleGoBack}>
+						<Text style={[styles.backButtonText, { color: colors.surface }]}>
+							Go Back
+						</Text>
+					</TouchableOpacity>
+				</View>
+			</SafeAreaView>
+		);
+	}
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        {/* Messages */}
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          style={styles.messagesList}
-          contentContainerStyle={styles.messagesContent}
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        />
+	return (
+		<SafeAreaView
+			style={[styles.container, { backgroundColor: colors.background }]}>
+			<StatusBar
+				barStyle={isDark ? 'light-content' : 'dark-content'}
+				backgroundColor={colors.background}
+			/>
 
-        {/* Typing Indicator */}
-        {isTyping && (
-          <View style={[styles.typingContainer, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.typingText, { color: colors.textSecondary }]}>
-              {otherUser.name} is typing...
-            </Text>
-          </View>
-        )}
+			<View style={[styles.header, { backgroundColor: colors.primary }]}>
+				<TouchableOpacity
+					onPress={handleGoBack}
+					style={styles.backButtonHeader}>
+					<Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+				</TouchableOpacity>
 
-        {/* Chat Input */}
-        <ChatInput onSendMessage={handleSendMessage} />
-      </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
+				<View style={styles.headerContent}>
+					<Text style={styles.headerTitle}>Chat</Text>
+				</View>
+
+				<TouchableOpacity style={styles.headerAction}>
+					<Ionicons name="call" size={24} color="#FFFFFF" />
+				</TouchableOpacity>
+			</View>
+
+			<Channel
+				channel={channel}
+				Message={CustomMessage}>
+				<View style={styles.chatContainer}>
+					<MessageList />
+				</View>
+			</Channel>
+		</SafeAreaView>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  flex: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  headerButton: {
-    padding: 8,
-  },
-  headerInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  headerText: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  headerName: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  headerStatus: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  messagesList: {
-    flex: 1,
-  },
-  messagesContent: {
-    paddingVertical: 16,
-  },
-  typingContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  typingText: {
-    fontSize: 14,
-    fontStyle: 'italic',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  errorText: {
-    fontSize: 18,
-    fontWeight: '500',
-    marginBottom: 24,
-  },
-  backButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
+	container: {
+		flex: 1,
+	},
+	header: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		paddingHorizontal: 16,
+		paddingVertical: 12,
+		elevation: 2,
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+	},
+	loadingContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingHorizontal: 32,
+	},
+	loadingText: {
+		fontSize: 16,
+		marginTop: 16,
+	},
+	errorContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		paddingHorizontal: 32,
+	},
+	errorText: {
+		fontSize: 18,
+		textAlign: 'center',
+		marginBottom: 24,
+	},
+	backButton: {
+		paddingHorizontal: 24,
+		paddingVertical: 12,
+		borderRadius: 8,
+	},
+	backButtonText: {
+		fontSize: 16,
+		fontWeight: '600',
+	},
+	backButtonHeader: {
+		padding: 8,
+	},
+	headerContent: {
+		flex: 1,
+		alignItems: 'center',
+	},
+	headerTitle: {
+		fontSize: 18,
+		fontWeight: '600',
+		color: '#FFFFFF',
+	},
+	headerAction: {
+		padding: 8,
+	},
+	chatContainer: {
+		flex: 1,
+	},
 });
