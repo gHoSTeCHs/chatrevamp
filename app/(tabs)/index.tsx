@@ -11,11 +11,11 @@ import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
 	ActivityIndicator,
-	SafeAreaView,
 	StatusBar,
 	Text,
 	View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChannelList } from 'stream-chat-expo';
 import '../global.css';
 

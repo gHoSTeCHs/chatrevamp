@@ -17,6 +17,8 @@ const USER_DATA_KEY = '@chatrevamp_user_data';
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+	console.log('AuthProvider: Initializing...');
+	
 	const [user, setUser] = useState<User | null>(null);
 	const [token, setToken] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
@@ -24,23 +26,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const isAuthenticated = !!user && !!token;
 
 	useEffect(() => {
+		console.log('AuthProvider: useEffect triggered, calling loadStoredAuth');
 		loadStoredAuth();
 	}, []);
 
 	const loadStoredAuth = async () => {
+		console.log('AuthProvider: loadStoredAuth started');
 		try {
+			console.log('AuthProvider: Attempting to load stored auth data');
 			const [storedToken, storedUser] = await Promise.all([
 				AsyncStorage.getItem(AUTH_TOKEN_KEY),
 				AsyncStorage.getItem(USER_DATA_KEY),
 			]);
 
+			console.log('AuthProvider: Storage data retrieved', { 
+				hasToken: !!storedToken, 
+				hasUser: !!storedUser 
+			});
+
 			if (storedToken && storedUser) {
+				console.log('AuthProvider: Setting stored auth data');
 				setToken(storedToken);
 				setUser(JSON.parse(storedUser));
+				console.log('AuthProvider: Auth data set successfully');
+			} else {
+				console.log('AuthProvider: No stored auth data found');
 			}
 		} catch (error) {
-			console.error('Failed to load stored auth:', error);
+			console.error('AuthProvider: Failed to load stored auth:', error);
 		} finally {
+			console.log('AuthProvider: Setting isLoading to false');
 			setIsLoading(false);
 		}
 	};
